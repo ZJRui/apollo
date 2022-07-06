@@ -120,6 +120,26 @@ public class ApolloApplicationContextInitializer implements
    */
   protected void initialize(ConfigurableEnvironment environment) {
 
+    /**
+     * SpringBoot启动的时候被调用。 且 ApplicationContextInitializer 本身不需要 @Component注册到 容器中，
+     * 而是在spring.factories配置文件中配置 有哪些ApplicationContextInitialzer实现
+     *
+     * initialize:70, ApolloApplicationContextInitializer (com.ctrip.framework.apollo.spring.boot)
+     * applyInitializers:628, SpringApplication (org.springframework.boot)
+     * prepareContext:364, SpringApplication (org.springframework.boot)
+     * run:305, SpringApplication (org.springframework.boot)
+     * run:1242, SpringApplication (org.springframework.boot)
+     * run:1230, SpringApplication (org.springframework.boot)
+     * main:41, ChatroomServiceApplication (com.yupaopao.hug.chatroom)
+     *
+     *-----------
+     * 关于ApplicationContextinitializer
+     * 在刷新之前初始化Spring ConfigurableApplicationContext的回调接口。
+     * 通常用于需要对应用程序上下文进行一些程序化初始化的web应用程序。例如，针对上下文环境注册属性源或激活配置文件。请参见ContextLoader和FrameworkServlet对分别声明“contextInitializerClasses”上下文参数和初始化参数的支持。
+     * ApplicationContextInitializer处理器被鼓励检测Spring的Ordered接口是否已经实现，或者是否存在@Order注释，并在调用之前相应地对实例进行排序
+     *
+     */
+
     if (environment.getPropertySources().contains(PropertySourcesConstants.APOLLO_BOOTSTRAP_PROPERTY_SOURCE_NAME)) {
       //already initialized, replay the logs that were printed before the logging system was initialized
       DeferredLogger.replayTo();
@@ -148,6 +168,40 @@ public class ApolloApplicationContextInitializer implements
         return;
       }
     }
+    /**
+     * Environment的getPropertySources中有一个Propertyist 保存 所有加在的propertySource
+     * [ConfigurationPropertySourcesPropertySource {
+     * 	name = 'configurationProperties'
+     * }, StubPropertySource {
+     * 	name = 'servletConfigInitParams'
+     * }, StubPropertySource {
+     * 	name = 'servletContextInitParams'
+     * }, MapPropertySource {
+     * 	name = 'systemProperties'
+     * }, OriginAwareSystemEnvironmentPropertySource {
+     * 	name = 'systemEnvironment'
+     * }, RandomValuePropertySource {
+     * 	name = 'random'
+     * }, OriginTrackedMapPropertySource {
+     * 	name = 'applicationConfig: [classpath:/application.properties]'
+     * }]
+     *
+     * 最后面一个是application.properties
+     *
+     * 然后这里 apollo加载的配置 被addFirst，因此优先级上 apollo 加载的配置 高于 application.properties 中的配置属性
+     *
+     * 在getProperty的时候
+     * org.springframework.core.env.PropertySourcesPropertyResolver#getProperty(java.lang.String, java.lang.Class, boolean)
+     * 会顺序从propertySource 中读取属性，如果读取到那么后面的propertSource就不会查找了
+     *
+     *
+     * 对于Apollo 他创建的PropertySource在读取属性的时候 最终会执行
+     * com.ctrip.framework.apollo.internals.DefaultConfig#getProperty(java.lang.String, java.lang.String)
+     *
+     *
+     *
+     *
+     */
     environment.getPropertySources().addFirst(composite);
   }
 

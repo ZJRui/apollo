@@ -153,6 +153,14 @@ public class DefaultConfig extends AbstractConfig implements RepositoryChangeLis
   @Override
   public String getProperty(String key, String defaultValue) {
     // step 1: check system properties, i.e. -Dkey=value
+    // 这里表明 Apollo不仅仅读取了配置中的属性， 在优先级上 系统属性 System.getProeprty 会优先于apollo的属性
+    //关于 System.Properties和System.getenv区别
+    /**
+     * 网上很多使用的是getProperties。说获得系统变量，但是其实不正确。getProperties中所谓的"system properties"其
+     * 实是指"java system"，而非"operation system"，概念完全不同，使用getProperties获得的其实是虚拟机的变量形如： -Djavaxxxx。
+     *
+     * getenv方法才是真正的获得系统环境变量，比如Path之类。其方法命名方式有违Sun命名规范其实。
+     */
     String value = System.getProperty(key);
 
     // step 2: check local cached properties file
