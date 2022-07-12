@@ -76,6 +76,7 @@ import org.springframework.core.env.StandardEnvironment;
  *  for example, you have defined logback-spring.xml in your project, and you want to inject some attributes into logback-spring.xml.
  *
  */
+@SuppressWarnings("all")
 public class ApolloApplicationContextInitializer implements
     ApplicationContextInitializer<ConfigurableApplicationContext> , EnvironmentPostProcessor, Ordered {
   public static final int DEFAULT_ORDER = 0;
@@ -94,6 +95,12 @@ public class ApolloApplicationContextInitializer implements
       ApolloClientSystemConsts.APOLLO_PROPERTY_NAMES_CACHE_ENABLE,
       ApolloClientSystemConsts.APOLLO_OVERRIDE_SYSTEM_PROPERTIES};
 
+  /**
+   *
+   * 这个属性
+   *
+   *
+   */
   private final ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector
       .getInstance(ConfigPropertySourceFactory.class);
 
@@ -101,6 +108,10 @@ public class ApolloApplicationContextInitializer implements
 
   @Override
   public void initialize(ConfigurableApplicationContext context) {
+    /**
+     *
+     * spring.factories文件中，包含两个启动会注入的类。首先看ApolloApplicationContextInitializer。
+     */
     ConfigurableEnvironment environment = context.getEnvironment();
 
     if (!environment.getProperty(PropertySourcesConstants.APOLLO_BOOTSTRAP_ENABLED, Boolean.class, false)) {
@@ -159,7 +170,15 @@ public class ApolloApplicationContextInitializer implements
     }
     for (String namespace : namespaceList) {
       Config config = ConfigService.getConfig(namespace);
-
+      /**
+       *   		  // 通过ConfigPropertySourceFactory创建ConfigPropertySource
+       *   		  注意 ApolloApplicationContextIntializer 中有一个属性
+       *
+       *
+       *   private final ConfigPropertySourceFactory configPropertySourceFactory = SpringInjector
+       *       .getInstance(ConfigPropertySourceFactory.class);
+       *
+       */
       composite.addPropertySource(configPropertySourceFactory.getConfigPropertySource(namespace, config));
     }
     if (!configUtil.isOverrideSystemProperties()) {
@@ -198,7 +217,13 @@ public class ApolloApplicationContextInitializer implements
      * 对于Apollo 他创建的PropertySource在读取属性的时候 最终会执行
      * com.ctrip.framework.apollo.internals.DefaultConfig#getProperty(java.lang.String, java.lang.String)
      *
-     *
+     *  // *********************************************************************
+     * 		// 向容器中注册:PropertySource,而且,还是放在首位,意味着:编写顺序在最后的namespace具有优先查找功能.
+     * 		// 比如: namespaces = [TEST1.jdbc, application]
+     * 		// 而 environment.getPropertySources().addFirst()后的结果是:  [application, TEST1.jdbc]
+     * 		//      key = server.port
+     * 		//     先在:application查找,找不到,再到:TEST1.jdbc里查找.
+     * 		// *********************************************************************
      *
      *
      */
