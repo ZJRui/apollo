@@ -43,6 +43,28 @@ import org.springframework.util.CollectionUtils;
  */
 public class AutoUpdateConfigChangeListener implements ConfigChangeListener,
     ApplicationListener<ApolloConfigChangeEvent>, ApplicationContextAware {
+  /**
+   * 1.该类的创建 ： initializeAutoUpdatePropertiesFeature  中  new AutoUpdateConfigChangeListener
+   * PropertySourcesProcessor.initializeAutoUpdatePropertiesFeature(ConfigurableListableBeanFactory)  (com.ctrip.framework.apollo.spring.config)
+   *     PropertySourcesProcessor.postProcessBeanFactory(ConfigurableListableBeanFactory)  (com.ctrip.framework.apollo.spring.config)
+   *         PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(Collection<? extends BeanFactoryPostProcessor>, ConfigurableListableBeanFactory)  (org.springframework.context.support)
+   *             PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory, List<BeanFactoryPostProcessor>)(6 usages)  (org.springframework.context.support)
+   *                 AbstractApplicationContext.invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory)  (org.springframework.context.support)
+   *                     AbstractApplicationContext.refresh()  (org.springframework.context.support)
+   *
+   *
+   * 创建完当前的Listener对象之后，加入到每个ConfigPropertySOurce中
+   *  AutoUpdateConfigChangeListener autoUpdateConfigChangeListener = new AutoUpdateConfigChangeListener(
+   *         environment, beanFactory);
+   *
+   *     List<ConfigPropertySource> configPropertySources = configPropertySourceFactory.getAllConfigPropertySources();
+   *     for (ConfigPropertySource configPropertySource : configPropertySources) {
+   *       configPropertySource.addChangeListener(autoUpdateConfigChangeListener);
+   *     }
+   *
+   *
+   *
+   */
 
   private static final Logger logger = LoggerFactory.getLogger(
       AutoUpdateConfigChangeListener.class);

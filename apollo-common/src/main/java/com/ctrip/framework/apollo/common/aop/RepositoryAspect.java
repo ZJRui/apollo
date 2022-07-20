@@ -38,6 +38,8 @@ public class RepositoryAspect {
     String name =
         joinPoint.getSignature().getDeclaringType().getSimpleName() + "." + joinPoint.getSignature()
             .getName();
+    //Cat.newTransaction
+    //  public static Transaction newTransaction(String type, String name) {
     Transaction catTransaction = Tracer.newTransaction("SQL", name);
     try {
       Object result = joinPoint.proceed();

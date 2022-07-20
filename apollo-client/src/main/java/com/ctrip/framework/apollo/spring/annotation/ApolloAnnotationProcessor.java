@@ -120,6 +120,12 @@ public class ApolloAnnotationProcessor extends ApolloProcessor implements BeanFa
     String[] namespaces = annotation.value();
     String[] annotatedInterestedKeys = annotation.interestedKeys();
     String[] annotatedInterestedKeyPrefixes = annotation.interestedKeyPrefixes();
+    /**
+     * 创建Listener， 将listener加入到每一个ConfigPropertysource中。
+     * 参考 另外一个Listener的创建：AutoUpdateConfigChangeListener#AutoUpdateConfigChangeListener()
+     *
+     *
+     */
     ConfigChangeListener configChangeListener = new ConfigChangeListener() {
       @Override
       public void onChange(ConfigChangeEvent changeEvent) {
@@ -138,6 +144,17 @@ public class ApolloAnnotationProcessor extends ApolloProcessor implements BeanFa
       Config config = ConfigService.getConfig(resolvedNamespace);
 
       if (interestedKeys == null && interestedKeyPrefixes == null) {
+
+        /**
+         *   //listener放入config
+         *   当属性发生变化的时候，会执行这个命名空间对应的 AbstractConfig对象的 fireConfigChange
+         *   在fireConfigChange 方法中 会 根据这里添加的listener，拿到这个listener执行每一个onChange
+         *
+         * 在AbstractConfig
+         * com.ctrip.framework.apollo.internals.AbstractConfig#fireConfigChange(java.lang.String, java.util.Map)
+         *
+         *
+         */
         config.addChangeListener(configChangeListener);
       } else {
         config.addChangeListener(configChangeListener, interestedKeys, interestedKeyPrefixes);
